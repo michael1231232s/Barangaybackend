@@ -37,7 +37,25 @@ return [
 
     'firebase' => [
         'project_id' => env('FIREBASE_PROJECT_ID'),
-        'service_account_path' => env('FIREBASE_SERVICE_ACCOUNT_PATH'),
+        /*
+         * Absolute path, or path relative to the project root (e.g. storage/app/private/key.json).
+         * On Railway/Linux use forward slashes; config resolves relative paths with base_path().
+         */
+        'service_account_path' => (function () {
+            $p = env('FIREBASE_SERVICE_ACCOUNT_PATH');
+            if (! $p || ! is_string($p)) {
+                return null;
+            }
+            if (is_file($p)) {
+                return $p;
+            }
+            $relative = base_path($p);
+            if (is_file($relative)) {
+                return $relative;
+            }
+
+            return $p;
+        })(),
         'firestore_users_collection' => env('FIREBASE_FIRESTORE_USERS_COLLECTION', 'users'),
     ],
 

@@ -6,7 +6,7 @@
 
         <title inertia>{{ config('app.name', 'Barangay Portal') }}</title>
 
-        <link rel="icon" href="{{ asset('images/barangaylogo.png') }}" type="image/png">
+        <link rel="icon" href="{{ app()->isLocal() ? asset('images/barangaylogo.png') : asset('images/barangaylogo.png', true) }}" type="image/png">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

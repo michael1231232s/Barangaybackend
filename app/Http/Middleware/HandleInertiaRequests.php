@@ -36,7 +36,9 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'branding' => [
-                'logoUrl' => asset('images/barangaylogo.png'),
+                'logoUrl' => app()->isLocal()
+                    ? asset('images/barangaylogo.png')
+                    : asset('images/barangaylogo.png', true),
             ],
             'ziggy' => fn () => [
                 ...(new Ziggy)->toArray(),
