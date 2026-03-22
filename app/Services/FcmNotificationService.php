@@ -11,9 +11,28 @@ class FcmNotificationService
 {
     public function isConfigured(): bool
     {
-        $path = $this->credentialsPath();
+        return $this->getJsonKey() !== null && $this->projectId() !== null;
+    }
 
-        return $path !== null && is_readable($path) && $this->projectId() !== null;
+    protected function getJsonKey(): ?array
+    {
+        $envJson = env('FIREBASE_CREDENTIALS');
+        if ($envJson) {
+            $decoded = json_decode($envJson, true);
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        $path = $this->credentialsPath();
+        if ($path && is_readable($path)) {
+            $decoded = json_decode((string) file_get_contents($path), true);
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        return null;
     }
 
     public function sendToUserId(int $userId, string $title, string $body, array $data = []): void
@@ -132,14 +151,9 @@ class FcmNotificationService
             return $fromEnv;
         }
 
-        $path = $this->credentialsPath();
-        if (! $path || ! is_readable($path)) {
-            return null;
-        }
+        $jsonKey = $this->getJsonKey();
 
-        $json = json_decode((string) file_get_contents($path), true);
-
-        return $json['project_id'] ?? null;
+        return $jsonKey['project_id'] ?? null;
     }
 
     protected function credentialsPath(): ?string
@@ -151,12 +165,7 @@ class FcmNotificationService
 
     protected function accessToken(): ?string
     {
-        $path = $this->credentialsPath();
-        if (! $path || ! is_readable($path)) {
-            return null;
-        }
-
-        $jsonKey = json_decode((string) file_get_contents($path), true);
+        $jsonKey = $this->getJsonKey();
         if (! is_array($jsonKey)) {
             return null;
         }
