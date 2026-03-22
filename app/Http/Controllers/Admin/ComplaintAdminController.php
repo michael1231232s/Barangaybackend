@@ -68,6 +68,8 @@ class ComplaintAdminController extends Controller
             'admin_notes' => ['nullable', 'string', 'max:5000'],
         ]);
 
+        $previousStatus = $complaint->status;
+
         $complaint->status = $data['status'];
         $complaint->admin_notes = $data['admin_notes'] ?? null;
 
