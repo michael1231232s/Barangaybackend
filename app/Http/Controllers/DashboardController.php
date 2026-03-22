@@ -18,7 +18,7 @@ class DashboardController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $totalUsers = (int) User::query()->count();
+        $totalResidents = (int) User::query()->where('role', 'resident')->count();
 
         $totalRequests = (int) ServiceRequest::query()->count();
 
@@ -75,7 +75,7 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'stats' => [
-                'totalUsers' => $totalUsers,
+                'totalResidents' => $totalResidents,
                 'totalRequests' => $totalRequests,
                 'requestsByStatus' => $requestsByStatus,
                 'requestsByType' => $requestsByType,

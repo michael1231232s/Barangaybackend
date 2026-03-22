@@ -126,7 +126,7 @@ export default function Dashboard({ stats }) {
             <div className="py-12">
                 <div className="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        <StatCard label="Registered residents" value={stats.totalUsers} />
+                        <StatCard label="Registered residents" value={stats.totalResidents} />
                         <StatCard label="Service requests" value={stats.totalRequests} />
                         <StatCard label="Complaints" value={stats.totalComplaints} />
                         <StatCard label="Certificates" value={stats.totalCertificates} />
