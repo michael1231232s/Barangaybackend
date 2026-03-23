@@ -2,7 +2,9 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ConfirmModal from '@/Components/ConfirmModal';
 import RefreshListButton from '@/Components/RefreshListButton';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { useIndexFilters } from '@/hooks/useIndexFilters';
+import { useUpdateRowForm } from '@/hooks/useUpdateRowForm';
 
 const STATUS_OPTIONS = [
     { value: '', label: 'All' },
@@ -52,24 +54,8 @@ function StatCard({ label, value }) {
 export default function Index() {
     const { rows, filters, stats } = usePage().props;
 
-    const [q, setQ] = useState(filters?.q || '');
-    const [status, setStatus] = useState(filters?.status || '');
-
-    useEffect(() => {
-        setQ(filters?.q || '');
-        setStatus(filters?.status || '');
-    }, [filters?.q, filters?.status]);
-
+    const { q, setQ, status, setStatus, onSubmit } = useIndexFilters(filters, 'admin.permit-assistance.index');
     const items = useMemo(() => rows?.data || [], [rows]);
-
-    function onSubmit(e) {
-        e.preventDefault();
-        router.get(
-            route('admin.permit-assistance.index'),
-            { q, status },
-            { preserveState: true, replace: true },
-        );
-    }
 
     return (
         <AuthenticatedLayout
@@ -215,32 +201,16 @@ export default function Index() {
 }
 
 function PermitRow({ row }) {
-    const [open, setOpen] = useState(false);
-    const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
-
     const canUpdate = !['cancelled', 'resolved', 'rejected'].includes(row.status);
 
-    const { data, setData, patch, processing } = useForm({
+    const {
+        open, setOpen, confirmSaveOpen, setConfirmSaveOpen,
+        data, setData, processing, submit, confirmSave
+    } = useUpdateRowForm(row.id, 'admin.permit-assistance.update', {
         status: row.status,
         admin_notes: row.admin_notes || '',
         scheduled_at: row.scheduled_at || '',
     });
-
-    function submit(e) {
-        e.preventDefault();
-        setConfirmSaveOpen(true);
-    }
-
-    function confirmSave() {
-        patch(route('admin.permit-assistance.update', row.id), {
-            preserveScroll: true,
-            onSuccess: () => {
-                setConfirmSaveOpen(false);
-                setOpen(false);
-            },
-            onFinish: () => setConfirmSaveOpen(false),
-        });
-    }
 
     return (
         <>

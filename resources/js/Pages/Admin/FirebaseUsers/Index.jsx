@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useFirebaseUsersFilter } from '@/hooks/useFirebaseUsers';
 
 function Pagination({ meta, links }) {
     if (!links || links.length <= 3) return null;
@@ -31,20 +31,7 @@ function Pagination({ meta, links }) {
 }
 
 export default function Index({ rows, filters }) {
-    const [q, setQ] = useState(filters?.q ?? '');
-
-    useEffect(() => {
-        setQ(filters?.q ?? '');
-    }, [filters?.q]);
-
-    function submit(e) {
-        e.preventDefault();
-        router.get(
-            route('admin.firebase-users.index'),
-            { q },
-            { preserveState: true, replace: true },
-        );
-    }
+    const { q, setQ, submit } = useFirebaseUsersFilter(filters);
 
     return (
         <AuthenticatedLayout

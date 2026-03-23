@@ -1,7 +1,8 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import RefreshListButton from '@/Components/RefreshListButton';
 import { Head, router, usePage } from '@inertiajs/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useResidentsFilter } from '@/hooks/useResidents';
 
 function formatDateOnly(value) {
     if (!value) return '-';
@@ -19,29 +20,9 @@ function formatDateOnly(value) {
 export default function Index() {
     const { rows, filters } = usePage().props;
 
-    const [q, setQ] = useState(filters?.q || '');
-
-    useEffect(() => {
-        setQ(filters?.q || '');
-    }, [filters?.q]);
-
+    const { q, setQ, onSubmit } = useResidentsFilter(filters);
     const items = useMemo(() => rows?.data || [], [rows]);
-
     const [openId, setOpenId] = useState(null);
-
-    function onSubmit(e) {
-        e.preventDefault();
-        router.get(
-            route('admin.residents.index'),
-            { 
-                q 
-            }, 
-            { 
-                preserveState: true, 
-                replace: true 
-            },
-        );
-    }
 
     return (
         <AuthenticatedLayout

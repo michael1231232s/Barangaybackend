@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
+import { useServiceRequestStatus } from '@/hooks/useServiceRequests';
 
 const STATUSES = ['pending', 'processing', 'approved', 'rejected', 'cancelled', 'completed'];
 
@@ -26,16 +27,7 @@ function statusBadge(status) {
 }
 
 function StatusForm({ row }) {
-    const { data, setData, patch, processing } = useForm({
-        status: row.status,
-    });
-
-    function submit(e) {
-        e.preventDefault();
-        patch(route('admin.service-requests.update', { serviceRequest: row.id }), {
-            preserveScroll: true,
-        });
-    }
+    const { data, setData, processing, submit } = useServiceRequestStatus(row);
 
     return (
         <form onSubmit={submit} className="flex items-center gap-2">

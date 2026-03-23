@@ -1,7 +1,8 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ConfirmModal from '@/Components/ConfirmModal';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { useProgramsFilter, useCreateProgram, useProgramRow } from '@/hooks/usePrograms';
 
 const PUBLISHED_OPTIONS = [
     { value: '', label: 'All' },
@@ -19,32 +20,8 @@ const DEFAULT_CATEGORIES = [
 export default function Index() {
     const { rows, filters, categories } = usePage().props;
 
-    const [q, setQ] = useState(filters?.q || '');
-    const [category, setCategory] = useState(filters?.category || '');
-    const [published, setPublished] = useState(filters?.published || '');
-
-    useEffect(() => {
-        setQ(filters?.q || '');
-        setCategory(filters?.category || '');
-        setPublished(filters?.published || '');
-    }, [filters?.q, filters?.category, filters?.published]);
-
+    const { q, setQ, category, setCategory, published, setPublished, categoryOptions, onSubmit } = useProgramsFilter(filters, categories, DEFAULT_CATEGORIES);
     const items = useMemo(() => rows?.data || [], [rows]);
-
-    const categoryOptions = useMemo(() => {
-        const dynamic = Array.isArray(categories) ? categories : [];
-        const set = new Set([...DEFAULT_CATEGORIES, ...dynamic].filter(Boolean));
-        return ['', ...Array.from(set).sort((a, b) => a.localeCompare(b))];
-    }, [categories]);
-
-    function onSubmit(e) {
-        e.preventDefault();
-        router.get(
-            route('admin.programs.index'),
-            { q, category, published },
-            { preserveState: true, replace: true },
-        );
-    }
 
     return (
         <AuthenticatedLayout
@@ -187,42 +164,7 @@ export default function Index() {
 }
 
 function CreateProgramCard({ categoryOptions }) {
-    const { data, setData, post, processing, reset } = useForm({
-        category: categoryOptions.find((x) => x !== '') || 'Health',
-        title: '',
-        description: '',
-        schedule: '',
-        location: '',
-        contact: '',
-        is_published: true,
-    });
-
-    function submit(e) {
-        e.preventDefault();
-        post(route('admin.programs.store'), {
-            preserveScroll: true,
-            onSuccess: () => reset('title', 'description', 'schedule', 'location', 'contact'),
-        });
-    }
-
-    function fillCurrentLocation() {
-        if (!navigator?.geolocation) {
-            alert('Geolocation is not supported by this browser.');
-            return;
-        }
-
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                const lat = pos?.coords?.latitude;
-                const lng = pos?.coords?.longitude;
-                if (typeof lat === 'number' && typeof lng === 'number') {
-                    setData('location', `${lat},${lng}`);
-                }
-            },
-            () => alert('Unable to get current location. Please allow location permission.'),
-            { enableHighAccuracy: true, timeout: 15000 },
-        );
-    }
+    const { data, setData, processing, fillCurrentLocation, submit } = useCreateProgram(categoryOptions);
 
     return (
         <div className="rounded-xl border border-blue-900/10 bg-white p-4 shadow-sm">
@@ -340,69 +282,10 @@ function CreateProgramCard({ categoryOptions }) {
 }
 
 function ProgramRow({ row, categoryOptions }) {
-    const [open, setOpen] = useState(false);
-    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
-    const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
-
-    const { data, setData, patch, delete: destroy, processing } = useForm({
-        category: row.category,
-        title: row.title,
-        description: row.description || '',
-        schedule: row.schedule || '',
-        location: row.location || '',
-        contact: row.contact || '',
-        is_published: !!row.is_published,
-    });
-
-    function fillCurrentLocation() {
-        if (!navigator?.geolocation) {
-            alert('Geolocation is not supported by this browser.');
-            return;
-        }
-
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                const lat = pos?.coords?.latitude;
-                const lng = pos?.coords?.longitude;
-                if (typeof lat === 'number' && typeof lng === 'number') {
-                    setData('location', `${lat},${lng}`);
-                }
-            },
-            () => alert('Unable to get current location. Please allow location permission.'),
-            { enableHighAccuracy: true, timeout: 15000 },
-        );
-    }
-
-    function submit(e) {
-        e.preventDefault();
-        setConfirmSaveOpen(true);
-    }
-
-    function confirmSave() {
-        patch(route('admin.programs.update', row.id), {
-            preserveScroll: true,
-            onSuccess: () => {
-                setConfirmSaveOpen(false);
-                setOpen(false);
-            },
-            onFinish: () => setConfirmSaveOpen(false),
-        });
-    }
-
-    function onDelete() {
-        setConfirmDeleteOpen(true);
-    }
-
-    function confirmDelete() {
-        destroy(route('admin.programs.destroy', row.id), {
-            preserveScroll: true,
-            onSuccess: () => {
-                setConfirmDeleteOpen(false);
-                setOpen(false);
-            },
-            onFinish: () => setConfirmDeleteOpen(false),
-        });
-    }
+    const {
+        open, setOpen, confirmDeleteOpen, setConfirmDeleteOpen, confirmSaveOpen, setConfirmSaveOpen,
+        data, setData, processing, fillCurrentLocation, submit, confirmSave, onDelete, confirmDelete
+    } = useProgramRow(row);
 
     return (
         <>
